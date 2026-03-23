@@ -1,0 +1,168 @@
+image: docker:20.10.16
+
+services:
+  - docker:20.10.16-dind
+
+stages:
+  - test
+  - build
+  - deploy_dev
+  - deploy_prod
+
+variables:
+  DOCKER_IMAGE: "cr.selcloud.ru/crnardus/llm-gate"
+  DOCKER_HOST: "tcp://docker:2375"
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+
+# ========================================
+# Stage: Tests (только для current_state)
+# ========================================
+test:
+  stage: test
+  image: python:3.12-slim
+  only:
+    - current_state
+  variables:
+    DATABASE_URL: "postgresql+asyncpg://test:test@localhost:5432/test"
+    OLLAMA_URL: "http://localhost:11434"
+    AUTH_SERVICE_URL: "http://test-auth-service/validate"
+    INTERNAL_SERVICE_TOKEN: "test_token"
+    CORS_ORIGINS: '["*"]'
+  before_script:
+    - pip install --no-cache-dir -U pip
+    - apt-get update -y && apt-get install -y docker.io git
+    - pip install --no-cache-dir -r requirements.txt
+    - pip install --no-cache-dir -r requirements-test.txt
+    - pip install --no-cache-dir black isort
+  script:
+    - isort --profile black --line-length 120 --check-only .
+    - black --line-length 120 --check .
+    - pytest tests/ --cov=. --cov-report=xml --cov-report=term
+  artifacts:
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    expire_in: 1 week
+
+# ========================================
+# Stage: Build and Push
+# ========================================
+build:
+  stage: build
+  image: python:3.12-slim
+  services:
+    - name: docker:20.10.16-dind
+      alias: docker
+  only:
+    - dev_server
+    - main
+  before_script:
+    - pip install --no-cache-dir -U pip
+    - apt-get update -y && apt-get install -y docker.io git
+  script:
+    # Docker login
+    - echo "$CR_PASSWORD" | docker login cr.selcloud.ru -u "$CR_USERNAME" --password-stdin
+
+    # Версия из git tag, fallback на hash
+    - VERSION=$(git describe --tags --abbrev=0 || git rev-parse --short HEAD)
+    - echo "$VERSION" > version.txt
+
+    # Build + push
+    - docker build --platform=linux/amd64 -t $DOCKER_IMAGE:$VERSION .
+    - docker push $DOCKER_IMAGE:$VERSION
+
+  artifacts:
+    paths:
+      - version.txt
+
+# ========================================
+# Deploy to DEV
+# ========================================
+deploy_dev:
+  stage: deploy_dev
+  image: alpine:3.19
+  needs:
+    - job: build
+      artifacts: true
+  only:
+    - dev_server
+  before_script:
+    - apk add --no-cache openssh-client docker-cli bash
+    - mkdir -p ~/.ssh
+    - echo "$SERVER_DEV_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+  script:
+    - VERSION=$(cat version.txt)
+    - |
+      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $SERVER_DEV_USER@$SERVER_DEV_HOST << EOF
+        docker pull $DOCKER_IMAGE:$VERSION
+
+        docker stop llm-gate || true
+        docker rm llm-gate || true
+
+        docker run -d --network construction-net \
+          --name llm-gate \
+          --restart always \
+          -e ENV=dev \
+          -e APP_VERSION=$VERSION \
+          \
+          -e DATABASE_URL="$DATABASE_URL" \
+          -e OLLAMA_URL="$OLLAMA_URL" \
+          -e AUTH_SERVICE_URL="$AUTH_SERVICE_URL" \
+          -e INTERNAL_SERVICE_TOKEN="$INTERNAL_SERVICE_TOKEN" \
+          --label 'traefik.enable=true' \
+          --label 'traefik.http.routers.models-serv.rule=PathPrefix("/models")' \
+          --label 'traefik.http.routers.models-serv.entrypoints=web' \
+          --label 'traefik.http.services.models-serv.loadbalancer.server.port=8000' \
+          \
+          $DOCKER_IMAGE:$VERSION
+      
+        docker network connect saas-contreol-net llm-gate
+      
+      EOF
+
+# ========================================
+# Deploy to PROD
+# ========================================
+deploy_prod:
+  stage: deploy_prod
+  image: alpine:3.19
+  needs:
+    - job: build
+      artifacts: true
+  only:
+    - main
+  before_script:
+    - apk add --no-cache openssh-client docker-cli bash
+    - mkdir -p ~/.ssh
+    - echo "$SERVER_PROD_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+  script:
+    - VERSION=$(cat version.txt)
+    - |
+      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $SERVER_PROD_USER@$SERVER_PROD_HOST << EOF
+        docker pull $DOCKER_IMAGE:$VERSION
+
+        docker stop llm-gate || true
+        docker rm llm-gate || true
+
+        docker run -d --network saas-control-net \
+          --name llm-gate \
+          --restart always \
+          -e ENV=prod \
+          -e APP_VERSION=$VERSION \
+          \
+          -e DATABASE_URL="$DATABASE_URL" \
+          -e OLLAMA_URL="$OLLAMA_URL" \
+          -e AUTH_SERVICE_URL="$AUTH_SERVICE_URL" \
+          -e INTERNAL_SERVICE_TOKEN="$INTERNAL_SERVICE_TOKEN" \
+          --label 'traefik.enable=true' \
+          --label 'traefik.http.routers.models-serv.rule=PathPrefix("/models")' \
+          --label 'traefik.http.routers.models-serv.entrypoints=web' \
+          --label 'traefik.http.services.models-serv.loadbalancer.server.port=8000' \
+          \
+          $DOCKER_IMAGE:$VERSION
+      EOF
