@@ -3,7 +3,6 @@
 Все ручки требуют авторизации через Bearer токен.
 """
 
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query

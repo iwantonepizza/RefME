@@ -6,7 +6,6 @@
 """
 
 import asyncio
-from typing import Optional
 
 import httpx
 

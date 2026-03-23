@@ -1,11 +1,9 @@
-from typing import Optional
 """
 Use Case для обновления токена.
 """
 
 import logging
 from datetime import datetime
-from typing import Optional
 
 from src.domain.token.models import Token
 from src.domain.token.repositories import TokenRepository

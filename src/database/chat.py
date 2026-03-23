@@ -4,7 +4,6 @@ ORM модель для чата.
 
 import uuid
 from datetime import datetime, timezone
-from typing import Optional
 
 from sqlalchemy import ForeignKey, text as sa_text
 from sqlalchemy.orm import Mapped, mapped_column, relationship

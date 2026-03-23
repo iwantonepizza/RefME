@@ -2,7 +2,7 @@
 Реализация репозитория для сессий.
 """
 
-from typing import List, Optional
+from typing import List
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -42,7 +42,7 @@ class SqlAlchemySessionRepository(SessionRepositoryInterface):
         model = result.scalar_one_or_none()
         return self._to_domain(model) if model else None
 
-    async def get_by_token_id(
+    async def list_by_token_id(
         self, token_id: str, limit: int, offset: int
     ) -> List[SessionDomain]:
         """Получение сессий по token_id."""
@@ -57,8 +57,8 @@ class SqlAlchemySessionRepository(SessionRepositoryInterface):
 
     async def list(self, token_id: str, limit: int = 100, offset: int = 0,
                    filters: dict = None) -> List[SessionDomain]:
-        """Получение сессий по token_id с фильтрами (алиас для get_by_token_id)."""
-        return await self.get_by_token_id(token_id, limit, offset)
+        """Получение сессий по token_id с фильтрами (алиас для list_by_token_id)."""
+        return await self.list_by_token_id(token_id, limit, offset)
 
     async def get_by_chat_id(self, chat_id: UUID) -> List[SessionDomain]:
         """Получение сессий по chat_id."""

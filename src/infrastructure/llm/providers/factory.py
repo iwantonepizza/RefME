@@ -2,10 +2,10 @@
 Фабрика для создания и выбора LLM провайдеров.
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from src.core.config import settings
-from src.domain.llm_model.repositories import ModelRepositoryInterface
+from src.domain.llm_model.repositories import ModelRepository
 from src.exceptions.exceptions import LLMServiceError
 from src.core.logging import logger
 from src.infrastructure.llm.providers.base import LLMProvider
@@ -80,7 +80,7 @@ class LLMProviderFactory:
     async def get_provider_for_model(
         self,
         model_name: str,
-        model_repository: ModelRepositoryInterface | None = None
+        model_repository: ModelRepository | None = None
     ) -> LLMProvider:
         """
         Выбор провайдера для модели.

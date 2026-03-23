@@ -3,7 +3,7 @@
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List
 from uuid import UUID
 
 from src.domain.session.filters import SessionFilters
@@ -35,10 +35,24 @@ class SessionRepository(ABC):
         pass
 
     @abstractmethod
-    async def list(self, token_id: str, limit: int = 100, offset: int = 0,
+    async def list_by_token_id(self, token_id: str, limit: int = 100, offset: int = 0,
                    filters: SessionFilters | None = None) -> List[Session]:
         """
         Получение сессий по token_id с фильтрами.
+
+        :param token_id: Значение токена
+        :param limit: Максимальное количество записей
+        :param offset: Смещение (для пагинации)
+        :param filters: Типизированные фильтры SessionFilters (опционально)
+        :return: Список сессий
+        """
+        pass
+
+    @abstractmethod
+    async def list(self, token_id: str, limit: int = 100, offset: int = 0,
+                   filters: SessionFilters | None = None) -> List[Session]:
+        """
+        Получение сессий по token_id с фильтрами (алиас для list_by_token_id).
 
         :param token_id: Значение токена
         :param limit: Максимальное количество записей

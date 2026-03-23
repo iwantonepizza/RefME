@@ -5,7 +5,7 @@
 import asyncio
 import random
 from functools import wraps
-from typing import Callable, Optional, Type, TypeVar
+from typing import Callable, Type, TypeVar
 
 from src.core.logging import logger
 

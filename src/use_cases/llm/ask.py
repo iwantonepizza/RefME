@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 """
 Use Case для запроса к LLM с историей сообщений.
 """
@@ -14,7 +14,6 @@ from src.core.constants import MessageStatus, Role
 from src.core.logging import logger
 from src.domain.chat.repositories import ChatRepository
 from src.domain.llm.orchestrator import LLMOrchestrator
-from src.domain.llm.services import LLMConfigurationService
 from src.domain.message.models import Message
 from src.domain.message.repositories import MessageRepository
 from src.domain.session.repositories import SessionRepository
@@ -75,7 +74,6 @@ class LLMAskUseCase(BaseUseCase[LLMAskInput, LLMAskOutput]):
         chat_repository: ChatRepository,
         message_repository: MessageRepository,
         orchestrator: LLMOrchestrator,
-        config_service: LLMConfigurationService,
         token_counter: TokenCounter,  # ✅ Token Counter
     ):
         self.token_repository = token_repository
@@ -83,7 +81,6 @@ class LLMAskUseCase(BaseUseCase[LLMAskInput, LLMAskOutput]):
         self.chat_repository = chat_repository
         self.message_repository = message_repository
         self.orchestrator = orchestrator
-        self.config_service = config_service
         self.token_counter = token_counter
 
     async def _run_logic(self, input_data: LLMAskInput) -> LLMAskOutput:
@@ -146,7 +143,8 @@ class LLMAskUseCase(BaseUseCase[LLMAskInput, LLMAskOutput]):
         # Обработка изображений
         images_data: List[str | None] = None
         if input_data.images and len(input_data.images) > 0:
-            max_images = await self.config_service.get_max_images_per_request()
+            from src.core.config import settings
+            max_images = settings.MAX_IMAGES_PER_REQUEST
             if len(input_data.images) > max_images:
                 raise TooManyImagesError(max_images)
 
@@ -273,11 +271,11 @@ class LLMAskUseCase(BaseUseCase[LLMAskInput, LLMAskOutput]):
         messages = await self.message_repository.get_by_session_id(session_id, limit=None, offset=0)
 
         # Формируем историю
-        history = [LLMMessage(role=msg.role, content=msg.content) for msg in messages]
+        history = [LLMMessage(role=Role(msg.role), content=msg.content) for msg in messages]
 
         # Формируем новое сообщение
         new_message = LLMMessage(
-            role=role,
+            role=Role(role),
             content=msg_text or "",
             images=images_data,
         )

@@ -3,7 +3,7 @@ UseCase для получения LLM модели по ID.
 """
 
 from src.domain.llm_model.models import LLMModel
-from src.domain.llm_model.repositories import ModelRepositoryInterface
+from src.domain.llm_model.repositories import ModelRepository
 from src.exceptions.domain_exceptions import ModelNotFoundError
 from src.use_cases.base_use_case import BaseUseCase
 from src.use_cases.dto import ModelDTO
@@ -20,7 +20,7 @@ class GetModelInput:
 class GetModelUseCase(BaseUseCase[GetModelInput, ModelDTO]):
     """UseCase для получения LLM модели по ID."""
 
-    def __init__(self, repository: ModelRepositoryInterface):
+    def __init__(self, repository: ModelRepository):
         self.repository = repository
 
     async def _run_logic(self, input_data: GetModelInput) -> ModelDTO:

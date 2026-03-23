@@ -4,7 +4,7 @@
 
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 from uuid import UUID
 
 from src.domain.message.filters import MessageFilters

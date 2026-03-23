@@ -2,7 +2,7 @@
 Реализация репозитория токенов.
 """
 
-from typing import List, Optional
+from typing import List
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -47,19 +47,10 @@ class SqlAlchemyTokenRepository(TokenRepository):
         return await self.get_by_id(token_id)
 
     async def get_by_token_value(self, token_value: str) -> Token | None:
-        """Получение токена по значению."""
-        result = await self.session.execute(
-            select(APITokenModel).where(APITokenModel.token == token_value)
-        )
-        model = result.scalar_one_or_none()
-        return self._to_domain(model) if model else None
-
-    async def get_by_token(self, token_value: str) -> Token | None:
-        """Получение токена по значению (алиас для get_by_token_value)."""
-        return await self.get_by_token_value(token_value)
-
-    async def get_active_by_token_value(self, token_value: str) -> Token | None:
-        """Получение активного токена по значению."""
+        """
+        Получение токена по значению.
+        Проверяет active=True и is_expired.
+        """
         result = await self.session.execute(
             select(APITokenModel).where(
                 (APITokenModel.token == token_value) &
@@ -74,6 +65,10 @@ class SqlAlchemyTokenRepository(TokenRepository):
         if token.is_expired:
             return None
         return token
+
+    async def get_by_token(self, token_value: str) -> Token | None:
+        """Получение токена по значению (алиас для get_by_token_value)."""
+        return await self.get_by_token_value(token_value)
 
     async def get_all(self, limit: int = None, offset: int = None, order_by: str = None) -> List[Token]:
         """Получение всех токенов."""

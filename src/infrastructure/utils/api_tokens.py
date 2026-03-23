@@ -4,8 +4,6 @@
 Обёртки для использования TokenRepository в FastAPI Depends.
 """
 
-from typing import Optional
-
 from fastapi import Depends, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,7 +15,7 @@ from src.infrastructure.database.token_repository_impl import SqlAlchemyTokenRep
 
 
 async def get_llm_api_token_from_headers(
-    api_llm_token: Optional[str] = Header(None, alias="api-token"),
+    api_llm_token: str | None = Header(None, alias="api-token"),
     session: AsyncSession = Depends(get_async_session),
 ) -> APIToken:
     """

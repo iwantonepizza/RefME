@@ -3,7 +3,6 @@
 """
 
 import httpx
-from typing import Optional
 
 # URL auth-сервиса для получения токена
 AUTH_TOKEN_URL = "https://saas.blco.pro/auth/api/accounts/user/get_token"

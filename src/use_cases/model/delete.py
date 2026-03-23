@@ -4,7 +4,7 @@ UseCase для удаления LLM модели.
 
 import logging
 
-from src.domain.llm_model.repositories import ModelRepositoryInterface
+from src.domain.llm_model.repositories import ModelRepository
 from src.exceptions.domain_exceptions import ModelNotFoundError
 from src.use_cases.base_use_case import BaseUseCase
 
@@ -30,7 +30,7 @@ class DeleteModelOutput:
 class DeleteModelUseCase(BaseUseCase[DeleteModelInput, DeleteModelOutput]):
     """UseCase для удаления LLM модели (мягкое удаление)."""
 
-    def __init__(self, repository: ModelRepositoryInterface):
+    def __init__(self, repository: ModelRepository):
         self.repository = repository
 
     async def _run_logic(self, input_data: DeleteModelInput) -> DeleteModelOutput:

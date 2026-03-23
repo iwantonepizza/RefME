@@ -19,6 +19,7 @@ services:
     image: postgres:17
     container_name: llm_gate_db
     restart: always
+    command: postgres -c log_min_duration_statement=1000
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-llm_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-super_pass}

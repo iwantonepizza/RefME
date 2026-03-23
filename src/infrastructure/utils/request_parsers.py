@@ -3,12 +3,11 @@
 """
 
 import json
-from typing import Optional
 
 from src.schemas.llm_schemas import RequestModelSchema
 
 
-def parse_request_field(msg: Optional[str] = None, role: str = "user") -> RequestModelSchema:
+def parse_request_field(msg: str | None = None, role: str = "user") -> RequestModelSchema:
     """
     Парсинг полей формы в RequestModelSchema.
 

@@ -2,7 +2,7 @@
 Реализация репозитория для LLM моделей.
 """
 
-from typing import List, Optional
+from typing import List
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,11 +11,11 @@ from src.core.constants import ModelType
 from src.database.chat import ChatSettings
 from src.database.llm_model import LLMModel as LLMModelORM, ModelType as ORMModelType
 from src.domain.llm_model.models import LLMModel
-from src.domain.llm_model.repositories import ModelRepositoryInterface
+from src.domain.llm_model.repositories import ModelRepository
 
 
-class ModelRepository(ModelRepositoryInterface):
-    """Репозиторий для LLM моделей."""
+class SqlAlchemyModelRepository(ModelRepository):
+    """Репозиторий для LLM моделей на SQLAlchemy."""
 
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -157,10 +157,3 @@ class ModelRepository(ModelRepositoryInterface):
         )
         models = result.scalars().all()
         return [self._to_domain(m) for m in models]
-
-    async def count_chats(self, model_id: int) -> int:
-        """Подсчёт количества чатов у модели."""
-        result = await self.session.execute(
-            select(func.count()).select_from(ChatSettings).where(ChatSettings.model_id == model_id)
-        )
-        return result.scalar() or 0

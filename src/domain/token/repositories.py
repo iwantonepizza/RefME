@@ -3,7 +3,7 @@
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List
 
 from src.domain.token.filters import TokenFilters
 from src.domain.token.models import Token
@@ -23,12 +23,12 @@ class TokenRepository(ABC):
 
     @abstractmethod
     async def get_by_token_value(self, token_value: str) -> Token | None:
-        """Получение токена по значению."""
-        pass
-
-    @abstractmethod
-    async def get_active_by_token_value(self, token_value: str) -> Token | None:
-        """Получение активного токена по значению."""
+        """
+        Получение токена по значению.
+        
+        :param token_value: Значение токена
+        :return: Токен или None
+        """
         pass
 
     @abstractmethod

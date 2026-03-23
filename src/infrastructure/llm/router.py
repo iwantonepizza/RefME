@@ -8,7 +8,7 @@
 """
 
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from src.core.config import settings
 from src.domain.llm.router import ModelRouter

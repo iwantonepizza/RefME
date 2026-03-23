@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 """
 Use Case для получения сессии.
 """

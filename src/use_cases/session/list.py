@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 """
 Use Case для получения списка сессий.
 """
@@ -50,7 +50,7 @@ class ListSessionsUseCase(BaseUseCase[ListSessionsInput, ListSessionsOutput]):
     async def _run_logic(self, input_data: ListSessionsInput) -> ListSessionsOutput:
         """Получение списка сессий."""
         # Получаем список сессий
-        sessions = await self.repository.get_by_token_id(
+        sessions = await self.repository.list_by_token_id(
             token_id=input_data.token_id,
             limit=input_data.limit or 100,
             offset=input_data.offset or 0

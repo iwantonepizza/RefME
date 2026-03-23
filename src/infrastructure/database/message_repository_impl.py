@@ -3,7 +3,7 @@
 """
 
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -36,7 +36,7 @@ class SqlAlchemyMessageRepository(MessageRepository):
             deleted_at=model.deleted_at,
         )
 
-    async def get(self, message_id: UUID) -> Optional[Message]:
+    async def get(self, message_id: UUID) -> Message | None:
         """Получение сообщения по ID."""
         return await self.get_by_id(message_id)
 

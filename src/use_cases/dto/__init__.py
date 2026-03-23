@@ -3,7 +3,7 @@ DTO (Data Transfer Objects) для передачи данных между сл
 """
 
 from datetime import datetime
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field

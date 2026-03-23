@@ -12,7 +12,7 @@ from typing import AsyncGenerator, List
 
 from src.domain.llm.message import LLMMessage
 from src.domain.llm.orchestrator import LLMOrchestrator
-from src.domain.llm_model.repositories import ModelRepositoryInterface
+from src.domain.llm_model.repositories import ModelRepository
 from src.infrastructure.llm.providers.factory import LLMProviderFactory
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ class LLMOrchestratorImpl(LLMOrchestrator):
 
     def __init__(
         self,
-        model_repository: ModelRepositoryInterface,
+        model_repository: ModelRepository,
         llm_factory: LLMProviderFactory,
     ):
         self.model_repository = model_repository

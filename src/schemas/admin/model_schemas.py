@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 """
 Схемы для админского управления моделями.
 """

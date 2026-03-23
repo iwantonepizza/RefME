@@ -8,7 +8,7 @@ from typing import List
 from src.domain.llm_model.models import LLMModel
 
 
-class ModelRepositoryInterface(ABC):
+class ModelRepository(ABC):
     """
     Интерфейс репозитория для LLM моделей.
 
@@ -54,9 +54,4 @@ class ModelRepositoryInterface(ABC):
     @abstractmethod
     async def count(self, filters: dict | None = None) -> int:
         """Подсчёт количества моделей."""
-        pass
-
-    @abstractmethod
-    async def count_chats(self, model_id: int) -> int:
-        """Подсчёт количества чатов у модели."""
         pass

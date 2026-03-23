@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 """
 Use Case для запроса к LLM без истории сообщений.
 """
@@ -14,8 +14,7 @@ from fastapi import UploadFile
 from src.core.constants import MessageStatus, Role
 from src.core.logging import logger
 from src.domain.chat.repositories import ChatRepository
-from src.domain.llm.services import LLMConfigurationService
-from src.domain.llm_model.repositories import ModelRepositoryInterface
+from src.domain.llm_model.repositories import ModelRepository
 from src.domain.token.models import Token
 from src.domain.token.repositories import TokenRepository
 from src.domain.utils.token_counter import TokenCounter
@@ -49,14 +48,12 @@ class LLMSingleUseCase(BaseUseCase[LLMSingleUseCaseInput, LLMSingleOutput]):
         self,
         token_repository: TokenRepository,
         chat_repository: ChatRepository,
-        model_repository: ModelRepositoryInterface,
-        config_service: LLMConfigurationService,
+        model_repository: ModelRepository,
         token_counter: TokenCounter,  # ✅ Token Counter
     ):
         self.token_repository = token_repository
         self.chat_repository = chat_repository
         self.model_repository = model_repository
-        self.config_service = config_service
         self.token_counter = token_counter
         self.llm_factory = get_provider_factory()
 
@@ -87,7 +84,8 @@ class LLMSingleUseCase(BaseUseCase[LLMSingleUseCaseInput, LLMSingleOutput]):
         # Обработка изображений
         images_data: List[str | None] = None
         if input_data.images:
-            max_images = await self.config_service.get_max_images_per_request()
+            from src.core.config import settings
+            max_images = settings.MAX_IMAGES_PER_REQUEST
             if len(input_data.images) > max_images:
                 raise TooManyImagesError(max_images)
 

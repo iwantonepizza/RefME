@@ -1,14 +1,13 @@
-from typing import Optional
 """
 UseCase для создания LLM модели.
 """
 
 import logging
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import List
 
 from src.domain.llm_model.models import LLMModel
-from src.domain.llm_model.repositories import ModelRepositoryInterface
+from src.domain.llm_model.repositories import ModelRepository
 from src.exceptions.domain_exceptions import ModelAlreadyExistsError
 from src.use_cases.base_use_case import BaseUseCase
 
@@ -110,7 +109,7 @@ class CreateModelOutput:
 class CreateModelUseCase(BaseUseCase[CreateModelInput, CreateModelOutput]):
     """UseCase для создания новой LLM модели."""
 
-    def __init__(self, repository: ModelRepositoryInterface):
+    def __init__(self, repository: ModelRepository):
         self.repository = repository
 
     async def _run_logic(self, input_data: CreateModelInput) -> CreateModelOutput:

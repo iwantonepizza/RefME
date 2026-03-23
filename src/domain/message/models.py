@@ -6,11 +6,13 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from uuid import UUID, uuid4
 
+from src.core.constants import Role
+
 
 @dataclass
 class Message:
     """Бизнес-объект сообщения."""
-    role: str
+    role: Role
     content: str
     status: str
     message_id: UUID = field(default_factory=uuid4)
@@ -28,8 +30,4 @@ class Message:
         if len(self.content) > 32000:
             raise ValueError("Message content too long (max 32000 chars)")
 
-        if self.role and self.role.lower() not in {"user", "assistant", "system"}:
-            raise ValueError(f"Invalid role: {self.role}")
-
         self.content = self.content.strip()
-        self.role = self.role.lower() if self.role else self.role

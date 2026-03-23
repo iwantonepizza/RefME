@@ -1,10 +1,9 @@
-from typing import Optional
 """
 Use Case для получения сообщений сессии.
 """
 
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 from uuid import UUID
 
 from src.domain.message.repositories import MessageRepository

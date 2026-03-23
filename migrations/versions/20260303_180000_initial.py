@@ -1,7 +1,7 @@
 """Initial migration - create all tables
 
 Revision ID: initial
-Revises: 
+Revises:
 Create Date: 2026-03-03 18:00:00.000000+00:00
 
 """
@@ -16,6 +16,11 @@ revision: str = "initial"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
+
+# ENUM types для PostgreSQL
+MessageStatus = sa.Enum("pending", "processing", "completed", "failed", name="messagestatus")
+Role = sa.Enum("system", "user", "assistant", name="role")
+ProviderType = sa.Enum("ollama", "vllm", name="providertype")
 
 
 def upgrade() -> None:
@@ -37,10 +42,10 @@ def upgrade() -> None:
     op.create_table(
         "llm_models",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("name", sa.String(), nullable=False),
+        sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column("provider_model", sa.String(), nullable=False),
         sa.Column("types", sa.JSON(), nullable=False, server_default='["text"]'),
-        sa.Column("provider", sa.String(), nullable=False, default="ollama"),
+        sa.Column("provider", ProviderType, nullable=False, default="ollama"),
         sa.Column("active", sa.Boolean(), nullable=False, default=True),
         sa.Column("temperature", sa.Float(), nullable=True),
         sa.Column("max_tokens", sa.Integer(), nullable=True),
@@ -99,9 +104,9 @@ def upgrade() -> None:
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("started_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("status", sa.String(length=20), nullable=False, default="pending"),
+        sa.Column("status", MessageStatus, nullable=False, server_default="pending"),
         sa.Column("session_id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("role", sa.String(), nullable=False),
+        sa.Column("role", Role, nullable=False, server_default="user"),
         sa.Column("content", sa.Text(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=True),
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
@@ -113,6 +118,11 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    # Удаляем ENUM типы
+    op.execute("DROP TYPE IF EXISTS messagestatus")
+    op.execute("DROP TYPE IF EXISTS role")
+    op.execute("DROP TYPE IF EXISTS providertype")
+    
     op.drop_table("chat_messages")
     op.drop_table("chat_sessions")
     op.drop_table("chat_settings")

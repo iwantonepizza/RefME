@@ -3,7 +3,7 @@ UseCase для получения списка LLM моделей.
 """
 
 from src.domain.llm_model.models import LLMModel
-from src.domain.llm_model.repositories import ModelRepositoryInterface
+from src.domain.llm_model.repositories import ModelRepository
 from src.use_cases.base_use_case import BaseUseCase
 from src.use_cases.dto import ModelDTO, ModelListDTO, PaginationDTO
 
@@ -23,7 +23,7 @@ class ListModelsInput:
 class ListModelsUseCase(BaseUseCase[ListModelsInput, ModelListDTO]):
     """UseCase для получения списка LLM моделей."""
 
-    def __init__(self, repository: ModelRepositoryInterface):
+    def __init__(self, repository: ModelRepository):
         self.repository = repository
 
     async def _run_logic(self, input_data: ListModelsInput) -> ModelListDTO:

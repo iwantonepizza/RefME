@@ -3,7 +3,7 @@
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List
 from uuid import UUID
 
 from src.domain.chat.filters import ChatFilters
@@ -20,14 +20,37 @@ class ChatRepository(ABC):
 
     @abstractmethod
     async def get_by_token_id_and_chat_id(self, token_id: int, chat_id: UUID) -> Chat | None:
-        """Получение чата по token_id и chat_id."""
+        """
+        Получение чата по token_id и chat_id.
+
+        :param token_id: ID токена владельца
+        :param chat_id: UUID чата
+        :return: Чат или None
+
+        Примечание: Этот метод используется для проверки принадлежности чата токену.
+        Возвращает чат только если он принадлежит указанному токену.
+        """
+        pass
+
+    @abstractmethod
+    async def list_by_token_id(self, token_id: int, limit: int = 100, offset: int = 0,
+                   filters: ChatFilters | None = None) -> List[Chat]:
+        """
+        Получение списка чатов по token_id с фильтрами.
+
+        :param token_id: ID токена владельца
+        :param limit: Максимальное количество записей
+        :param offset: Смещение (для пагинации)
+        :param filters: Типизированные фильтры ChatFilters (опционально)
+        :return: Список чатов
+        """
         pass
 
     @abstractmethod
     async def list(self, token_id: int, limit: int = 100, offset: int = 0,
                    filters: ChatFilters | None = None) -> List[Chat]:
         """
-        Получение списка чатов с фильтрами.
+        Получение списка чатов с фильтрами (алиас для list_by_token_id).
 
         :param token_id: ID токена владельца
         :param limit: Максимальное количество записей

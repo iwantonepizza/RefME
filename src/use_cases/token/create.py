@@ -1,4 +1,3 @@
-from typing import Optional
 """Use Case для создания токена."""
 
 import logging

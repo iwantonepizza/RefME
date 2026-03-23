@@ -2,7 +2,7 @@
 Роутер для запросов к LLM.
 """
 
-from typing import Annotated, List, Optional
+from typing import Annotated, List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile

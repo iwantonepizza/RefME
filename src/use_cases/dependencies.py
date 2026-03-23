@@ -12,9 +12,10 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import AsyncSessionLocal
-from src.infrastructure.database.chat_repository_impl import SqlAlchemyChatRepository
+from src.infrastructure.database.sqlalchemy_chat_repository import SqlAlchemyChatRepository
 from src.infrastructure.database.message_repository_impl import SqlAlchemyMessageRepository
-from src.infrastructure.database.model_repository import ModelRepository
+from src.infrastructure.database.model_repository import SqlAlchemyModelRepository
+from src.domain.llm_model.repositories import ModelRepository
 from src.infrastructure.database.session_repository import SqlAlchemySessionRepository
 from src.infrastructure.database.token_repository_impl import SqlAlchemyTokenRepository
 from src.use_cases.auth_service import AuthService
@@ -51,7 +52,6 @@ from src.use_cases.model.delete import DeleteModelUseCase
 from src.use_cases.llm.ask import LLMAskUseCase
 from src.use_cases.llm.stream import LLMStreamUseCase
 from src.use_cases.llm.single import LLMSingleUseCase
-from src.domain.llm.services import LLMConfigurationService
 from src.domain.utils.token_counter import TokenCounter
 from src.infrastructure.llm.orchestrator import LLMOrchestratorImpl
 from src.infrastructure.llm.providers.factory import get_provider_factory
@@ -102,9 +102,9 @@ async def get_message_repository(db: AsyncSession = Depends(get_db)) -> SqlAlche
     return SqlAlchemyMessageRepository(db)
 
 
-async def get_model_repository(db: AsyncSession = Depends(get_db)) -> ModelRepository:
+async def get_model_repository(db: AsyncSession = Depends(get_db)) -> SqlAlchemyModelRepository:
     """Зависимость для ModelRepository."""
-    return ModelRepository(db)
+    return SqlAlchemyModelRepository(db)
 
 
 # ============================================================================
@@ -284,13 +284,6 @@ async def get_delete_model_use_case(
 # LLM Use Cases
 # ============================================================================
 
-async def get_llm_config_service() -> LLMConfigurationService:
-    """Зависимость для LLMConfigurationService."""
-    from src.core.config import settings
-    from src.infrastructure.config.llm_config_service import LLMConfigService
-    return LLMConfigService(settings)
-
-
 async def get_token_counter() -> TokenCounter:
     """Зависимость для TokenCounter."""
     from src.infrastructure.services.token_counter_impl import get_token_counter
@@ -313,7 +306,6 @@ async def get_llm_ask_use_case(
     chat_repository: SqlAlchemyChatRepository = Depends(get_chat_repository),
     message_repository: SqlAlchemyMessageRepository = Depends(get_message_repository),
     orchestrator: LLMOrchestratorImpl = Depends(get_llm_orchestrator),
-    config_service: LLMConfigurationService = Depends(get_llm_config_service),
     token_counter: TokenCounter = Depends(get_token_counter),
 ) -> LLMAskUseCase:
     """Зависимость для LLMAskUseCase."""
@@ -323,7 +315,6 @@ async def get_llm_ask_use_case(
         chat_repository=chat_repository,
         message_repository=message_repository,
         orchestrator=orchestrator,
-        config_service=config_service,
         token_counter=token_counter,
     )
 
@@ -334,7 +325,6 @@ async def get_llm_stream_use_case(
     chat_repository: SqlAlchemyChatRepository = Depends(get_chat_repository),
     message_repository: SqlAlchemyMessageRepository = Depends(get_message_repository),
     orchestrator: LLMOrchestratorImpl = Depends(get_llm_orchestrator),
-    config_service: LLMConfigurationService = Depends(get_llm_config_service),
     token_counter: TokenCounter = Depends(get_token_counter),
 ) -> LLMStreamUseCase:
     """Зависимость для LLMStreamUseCase."""
@@ -344,7 +334,6 @@ async def get_llm_stream_use_case(
         chat_repository=chat_repository,
         message_repository=message_repository,
         orchestrator=orchestrator,
-        config_service=config_service,
         token_counter=token_counter,
     )
 
@@ -353,7 +342,6 @@ async def get_llm_single_use_case(
     token_repository: SqlAlchemyTokenRepository = Depends(get_token_repository),
     chat_repository: SqlAlchemyChatRepository = Depends(get_chat_repository),
     model_repository: ModelRepository = Depends(get_model_repository),
-    config_service: LLMConfigurationService = Depends(get_llm_config_service),
     token_counter: TokenCounter = Depends(get_token_counter),
 ) -> LLMSingleUseCase:
     """Зависимость для LLMSingleUseCase."""
@@ -361,7 +349,6 @@ async def get_llm_single_use_case(
         token_repository=token_repository,
         chat_repository=chat_repository,
         model_repository=model_repository,
-        config_service=config_service,
         token_counter=token_counter,
     )
 
