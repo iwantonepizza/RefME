@@ -70,7 +70,7 @@ class BaseUseCase(ABC, Generic[TInput, TOutput]):
         :return: Output объект
         """
         # Пытаемся использовать Pydantic model_validate если есть
-        if hasattr(TOutput, 'model_validate'):
-            return TOutput.model_validate(domain_obj)
+        if hasattr(self.__annotations__.get('return', object), 'model_validate'):
+            return self.__annotations__['return'].model_validate(domain_obj)  # type: ignore
         # Иначе возвращаем как есть (для dataclass)
-        return domain_obj
+        return domain_obj  # type: ignore

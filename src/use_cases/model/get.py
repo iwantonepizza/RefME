@@ -25,9 +25,9 @@ class GetModelUseCase(BaseUseCase[GetModelInput, ModelDTO]):
 
     async def _run_logic(self, input_data: GetModelInput) -> ModelDTO:
         """Получение модели по ID."""
-        model = await self.repository.get(input_data.model_id)
+        model = await self.repository.get_by_id(input_data.model_id)
 
         if not model:
             raise ModelNotFoundError(model_id=input_data.model_id)
 
-        return ModelDTO.from_orm(model)
+        return ModelDTO.model_validate(model)

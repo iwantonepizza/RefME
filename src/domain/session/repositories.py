@@ -73,7 +73,7 @@ class SessionRepository(ABC):
         pass
 
     @abstractmethod
-    async def update(self, session: Session) -> Session:
+    async def update(self, session: Session) -> Session | None:
         """Обновление сессии."""
         pass
 

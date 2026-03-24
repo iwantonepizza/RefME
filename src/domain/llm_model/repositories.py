@@ -42,7 +42,7 @@ class ModelRepository(ABC):
         pass
 
     @abstractmethod
-    async def update(self, model: LLMModel) -> LLMModel:
+    async def update(self, model: LLMModel) -> LLMModel | None:
         """Обновление модели."""
         pass
 

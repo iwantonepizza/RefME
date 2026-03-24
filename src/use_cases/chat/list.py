@@ -36,12 +36,13 @@ class ListChatsUseCase(BaseUseCase[ListChatsInput, ChatListResponseSchema]):
         # Получаем список чатов
         chats = await self.repository.list(
             token_id=input_data.token_id,
-            limit=input_data.limit,
-            offset=input_data.offset
+            limit=input_data.limit or 100,
+            offset=input_data.offset or 0
         )
 
         # Получаем общее количество
-        total = await self.repository.count(filters={"token_id": input_data.token_id})
+        from src.domain.chat.filters import ChatFilters
+        total = await self.repository.count(filters=ChatFilters(token_id=input_data.token_id))
 
         # Получаем счётчик сессий для каждого чата
         items = []
@@ -61,10 +62,10 @@ class ListChatsUseCase(BaseUseCase[ListChatsInput, ChatListResponseSchema]):
             ))
 
         logger.info(f"Получено {len(items)} чатов для токена ID={input_data.token_id}")
-        
+
         return ChatListResponseSchema(
             items=items,
             total=total,
-            limit=input_data.limit,
-            offset=input_data.offset,
+            limit=input_data.limit or 100,
+            offset=input_data.offset or 0,
         )

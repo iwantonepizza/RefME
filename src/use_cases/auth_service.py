@@ -45,7 +45,7 @@ class AuthService:
             try:
                 async with httpx.AsyncClient(timeout=self.base_timeout) as client:
                     response = await client.post(
-                        self.auth_url,
+                        self.auth_url or "",
                         headers=headers,
                         json=json_data,
                     )

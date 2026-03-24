@@ -50,7 +50,7 @@ class TokenRepository(ABC):
         pass
 
     @abstractmethod
-    async def update(self, token: Token) -> Token:
+    async def update(self, token: Token) -> Token | None:
         """Обновление токена."""
         pass
 

@@ -139,11 +139,11 @@ class CreateModelUseCase(BaseUseCase[CreateModelInput, CreateModelOutput]):
         logger.info(f"Модель создана с ID: {created_model.model_id}")
 
         return CreateModelOutput(
-            model_id=created_model.model_id,
+            id=created_model.model_id,
             name=created_model.name,
             provider_model=created_model.provider_model,
             provider=created_model.provider,
-            types=created_model.types,
+            type=created_model.types[0] if created_model.types else "text",
             active=created_model.active,
             temperature=created_model.temperature,
             max_tokens=created_model.max_tokens,

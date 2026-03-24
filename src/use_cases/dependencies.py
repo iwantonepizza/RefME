@@ -13,11 +13,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import AsyncSessionLocal
 from src.infrastructure.database.sqlalchemy_chat_repository import SqlAlchemyChatRepository
-from src.infrastructure.database.message_repository_impl import SqlAlchemyMessageRepository
-from src.infrastructure.database.model_repository import SqlAlchemyModelRepository
+from src.infrastructure.database.sqlalchemy_message_repository import SqlAlchemyMessageRepository
+from src.infrastructure.database.sqlalchemy_model_repository import SqlAlchemyModelRepository
 from src.domain.llm_model.repositories import ModelRepository
-from src.infrastructure.database.session_repository import SqlAlchemySessionRepository
-from src.infrastructure.database.token_repository_impl import SqlAlchemyTokenRepository
+from src.infrastructure.database.sqlalchemy_session_repository import SqlAlchemySessionRepository
+from src.infrastructure.database.sqlalchemy_token_repository import SqlAlchemyTokenRepository
 from src.use_cases.auth_service import AuthService
 
 # ============================================================================

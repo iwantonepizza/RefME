@@ -10,7 +10,7 @@
 import functools
 import logging
 import time
-from typing import Callable, ParamSpec, TypeVar
+from typing import Awaitable, Callable, ParamSpec, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ P = ParamSpec("P")  # Параметры функции
 R = TypeVar("R")  # Возвращаемое значение
 
 
-def logging_decorator(func: Callable[P, R]) -> Callable[P, R]:
+def logging_decorator(func: Callable[P, Awaitable[R]]) -> Callable[P, Awaitable[R]]:
     """
     Декоратор для логирования вызова методов.
 
@@ -52,4 +52,4 @@ def logging_decorator(func: Callable[P, R]) -> Callable[P, R]:
             elapsed_time = time.perf_counter() - start_time
             logger.info(f"Метод {func_name} завершен за {elapsed_time:.3f}s")
 
-    return wrapper
+    return wrapper  # type: ignore

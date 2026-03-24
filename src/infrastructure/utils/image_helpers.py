@@ -19,7 +19,7 @@ def encode_image_to_base64(file: UploadFile) -> str:
     :raises HTTPException: Если файл слишком большой
     """
     # Проверяем размер файла через size атрибут
-    file_size = file.size
+    file_size = file.size or 0
 
     max_size = settings.MAX_IMAGE_SIZE_MB * 1024 * 1024  # Конвертируем в байты
     if file_size > max_size:

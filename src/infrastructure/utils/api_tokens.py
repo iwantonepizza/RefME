@@ -11,7 +11,7 @@ from src.core.database import get_async_session
 from src.exceptions.exceptions import InvalidTokenError, MissingTokenError
 from src.core.logging import logger
 from src.database.api_token import APIToken
-from src.infrastructure.database.token_repository_impl import SqlAlchemyTokenRepository
+from src.infrastructure.database.sqlalchemy_token_repository import SqlAlchemyTokenRepository
 
 
 async def get_llm_api_token_from_headers(

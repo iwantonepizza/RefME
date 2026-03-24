@@ -38,7 +38,7 @@ class DeleteModelUseCase(BaseUseCase[DeleteModelInput, DeleteModelOutput]):
         logger.info(f"Удаление модели ID: {input_data.model_id}")
 
         # Получаем модель для проверки существования
-        model = await self.repository.get(input_data.model_id)
+        model = await self.repository.get_by_id(input_data.model_id)
         if not model:
             raise ModelNotFoundError(model_id=input_data.model_id)
 

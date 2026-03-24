@@ -34,8 +34,8 @@ class ListTokensUseCase(BaseUseCase[ListTokensInput, TokenListDTO]):
 
         # Получаем список токенов
         tokens = await self.repository.list(
-            limit=input_data.limit,
-            offset=input_data.offset
+            limit=input_data.limit or 100,
+            offset=input_data.offset or 0
         )
 
         # Получаем общее количество
@@ -48,8 +48,8 @@ class ListTokensUseCase(BaseUseCase[ListTokensInput, TokenListDTO]):
         return TokenListDTO(
             items=items,
             pagination=PaginationDTO(
-                limit=input_data.limit,
-                offset=input_data.offset,
+                limit=input_data.limit or 100,
+                offset=input_data.offset or 0,
                 total=total,
             ),
         )

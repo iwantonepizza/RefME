@@ -203,8 +203,9 @@ class LLMAskUseCase(BaseUseCase[LLMAskInput, LLMAskOutput]):
                 status="success"
             ).inc()
             # Точный подсчёт токенов через token_counter
+            messages_dict = [msg.to_dict() for msg in messages_payload]
             prompt_tokens = self.token_counter.count_prompt_tokens(
-                messages_payload, effective_settings.model
+                messages_dict, effective_settings.model
             )
             completion_tokens = self.token_counter.count_completion_tokens(
                 response_text, effective_settings.model

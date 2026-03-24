@@ -5,8 +5,8 @@
 """
 
 import logging
+from typing import Any, Dict, List
 
-from src.domain.llm.message import LLMMessage
 from src.domain.utils.token_counter import TokenCounter
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ class TiktokenTokenCounter(TokenCounter):
     Использует encoding для конкретной модели или fallback на cl100k_base.
     """
 
-    def count_prompt_tokens(self, messages: list[LLMMessage], model: str) -> int:
+    def count_prompt_tokens(self, messages: List[Dict[str, Any]], model: str) -> int:
         """
         Подсчёт количества токенов в промпте.
 
@@ -31,7 +31,9 @@ class TiktokenTokenCounter(TokenCounter):
 
         total = 0
         for msg in messages:
-            total += len(encoding.encode(msg.content))
+            content = msg.get("content", "")
+            if isinstance(content, str):
+                total += len(encoding.encode(content))
             # Добавляем токены за структуру сообщений
             total += 4
 
@@ -50,10 +52,10 @@ class TiktokenTokenCounter(TokenCounter):
 
     def count_total_tokens(
         self,
-        messages: list[LLMMessage],
+        messages: List[Dict[str, Any]],
         completion_text: str,
         model: str,
-    ) -> dict[str, int]:
+    ) -> Dict[str, int]:
         """
         Подсчёт общего количества токенов.
 

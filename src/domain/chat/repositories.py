@@ -66,7 +66,7 @@ class ChatRepository(ABC):
         pass
 
     @abstractmethod
-    async def update(self, chat: Chat) -> Chat:
+    async def update(self, chat: Chat) -> Chat | None:
         """Обновление чата."""
         pass
 

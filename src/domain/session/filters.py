@@ -14,6 +14,7 @@ class SessionFilters:
 
     Все поля опциональны — используются только те, что переданы.
     """
+    token_id: str | None = None  # Фильтр по ID токена
     chat_id: UUID | None = None  # Фильтр по ID чата
     created_after: datetime | None = None  # Созданы после даты
     created_before: datetime | None = None  # Созданы до даты

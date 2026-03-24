@@ -31,8 +31,8 @@ class ListModelsUseCase(BaseUseCase[ListModelsInput, ModelListDTO]):
         # Получаем список моделей
         models = await self.repository.list(
             active_only=input_data.active_only,
-            limit=input_data.limit,
-            offset=input_data.offset,
+            limit=input_data.limit or 100,
+            offset=input_data.offset or 0,
         )
 
         # Получаем общее количество
@@ -41,13 +41,13 @@ class ListModelsUseCase(BaseUseCase[ListModelsInput, ModelListDTO]):
         )
 
         # Конвертируем в DTO
-        items = [ModelDTO.from_orm(model) for model in models]
+        items = [ModelDTO.model_validate(model) for model in models]
 
         return ModelListDTO(
             items=items,
             pagination=PaginationDTO(
-                limit=input_data.limit,
-                offset=input_data.offset,
+                limit=input_data.limit or 100,
+                offset=input_data.offset or 0,
                 total=total,
             ),
         )

@@ -57,7 +57,8 @@ class ListSessionsUseCase(BaseUseCase[ListSessionsInput, ListSessionsOutput]):
         )
 
         # Получаем общее количество
-        total = await self.repository.count(filters={"token_id": input_data.token_id})
+        from src.domain.session.filters import SessionFilters
+        total = await self.repository.count(filters=SessionFilters(token_id=input_data.token_id))
 
         # Получаем дополнительную информацию для каждой сессии
         items = []
@@ -65,11 +66,11 @@ class ListSessionsUseCase(BaseUseCase[ListSessionsInput, ListSessionsOutput]):
             last_activity_at = None
             messages_count = 0
             if self.message_repository:
-                last_activity_at = await self.message_repository.get_last_message_timestamp(session.id)
-                messages_count = await self.message_repository.count_messages(session.id)
+                last_activity_at = await self.message_repository.get_last_message_timestamp(session.session_id)
+                messages_count = await self.message_repository.count_messages(session.session_id)
 
             items.append(SessionItemOutput(
-                id=session.id,
+                id=session.session_id,
                 token_id=session.token_id,
                 chat_id=session.chat_id,
                 created_at=session.created_at,

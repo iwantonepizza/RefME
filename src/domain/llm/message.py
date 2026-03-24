@@ -13,7 +13,7 @@ class LLMMessage:
     """Бизнес-объект сообщения для LLM."""
     role: Role  # "user", "assistant", "system"
     content: str  # Текстовое содержимое
-    images: List[str | None] = None  # Base64 изображения (опционально)
+    images: List[str] | None = None  # Base64 изображения (опционально)
 
     def to_dict(self) -> dict:
         """Конвертация в dict для отправки в LLM provider."""

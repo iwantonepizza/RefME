@@ -44,16 +44,12 @@ class NotFoundError(DomainException):
 
 class TokenNotFoundError(NotFoundError):
     """Токен не найден."""
-    
+
     def __init__(self, token_id: int | None = None):
         if token_id:
             super().__init__("Токен", "token_id", token_id)
         else:
-            self.message = "Токен не найден"
-            self.field_name = "token_id"
-            self.field_value = None
-            self.entity_name = "Токен"
-            super().__init__(self.message)
+            super().__init__("Токен", "token_id", "unknown")
 
 
 class ChatNotFoundError(NotFoundError):

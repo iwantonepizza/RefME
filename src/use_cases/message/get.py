@@ -88,12 +88,13 @@ class GetMessagesUseCase(BaseUseCase[GetMessagesInput, GetMessagesOutput]):
         # Получаем список сообщений
         messages = await self.repository.list(
             session_id=input_data.session_id,
-            limit=input_data.limit,
-            offset=input_data.offset
+            limit=input_data.limit or 100,
+            offset=input_data.offset or 0
         )
 
         # Получаем общее количество
-        total = await self.repository.count(filters={"session_id": input_data.session_id})
+        from src.domain.message.filters import MessageFilters
+        total = await self.repository.count(filters=MessageFilters(session_id=input_data.session_id))
 
         # Преобразуем в output модели
         items = [MessageItemOutput(
@@ -111,6 +112,6 @@ class GetMessagesUseCase(BaseUseCase[GetMessagesInput, GetMessagesOutput]):
         return GetMessagesOutput(
             items=items,
             total=total,
-            limit=input_data.limit,
-            offset=input_data.offset,
+            limit=input_data.limit or 100,
+            offset=input_data.offset or 0,
         )

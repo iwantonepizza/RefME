@@ -56,7 +56,7 @@ class UpdateModelUseCase(BaseUseCase[UpdateModelInput, ModelDTO]):
         logger.info(f"Обновление модели ID: {input_data.model_id}")
 
         # Получаем модель
-        model = await self.repository.get(input_data.model_id)
+        model = await self.repository.get_by_id(input_data.model_id)
         if not model:
             raise ModelNotFoundError(model_id=input_data.model_id)
 
@@ -80,4 +80,4 @@ class UpdateModelUseCase(BaseUseCase[UpdateModelInput, ModelDTO]):
         updated_model = await self.repository.update(model)
         logger.info(f"Модель ID={input_data.model_id} обновлена")
 
-        return ModelDTO.from_orm(updated_model)
+        return ModelDTO.model_validate(updated_model)
