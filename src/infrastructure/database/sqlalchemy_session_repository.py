@@ -30,6 +30,14 @@ class SqlAlchemySessionRepository(SessionRepositoryInterface):
             deleted_at=model.deleted_at,
         )
 
+    async def get(self, session_id: UUID) -> SessionDomain | None:
+        """Получение сессии по ID."""
+        result = await self.session.execute(
+            select(ChatSession).where(ChatSession.id == session_id)
+        )
+        model = result.scalar_one_or_none()
+        return self._to_domain(model) if model else None
+
     async def get_by_token_id_and_session_id(
         self, token_id: str, session_id: UUID
     ) -> SessionDomain | None:

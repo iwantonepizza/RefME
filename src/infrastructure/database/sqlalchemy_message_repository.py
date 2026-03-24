@@ -44,18 +44,9 @@ class SqlAlchemyMessageRepository(MessageRepository):
         model = result.scalar_one_or_none()
         return self._to_domain(model) if model else None
 
-    async def list(self, session_id: UUID, limit: int = 100, offset: int = 0,
-                   filters: MessageFilters | None = None) -> List[Message]:
-        """Получение сообщений по session_id с фильтрами."""
-        return await self.get_by_session_id(session_id, limit, offset)
-
-    async def get_by_id(self, message_id: UUID) -> Message | None:
-        """Получение сообщения по ID."""
-        result = await self.session.execute(
-            select(ChatMessage).where(ChatMessage.id == message_id)
-        )
-        model = result.scalar_one_or_none()
-        return self._to_domain(model) if model else None
+    async def get(self, message_id: UUID) -> Message | None:
+        """Получение сообщения по ID (алиас для get_by_id)."""
+        return await self.get_by_id(message_id)
 
     async def get_by_session_id(
             self, session_id: UUID, limit: int, offset: int
@@ -108,12 +99,15 @@ class SqlAlchemyMessageRepository(MessageRepository):
                 status=message.get("status", MessageStatus.PENDING.value),
             )
         else:
-            # Создание из domain модели
+            # Создание из domain модели — конвертируем Enum в строку
+            role_value = message.role.value if hasattr(message.role, 'value') else message.role
+            status_value = message.status.value if hasattr(message.status, 'value') else message.status
+            
             model = ChatMessage(
                 session_id=message.session_id,
-                role=message.role,
+                role=role_value,
                 content=message.content,
-                status=message.status,
+                status=status_value,
             )
         self.session.add(model)
         await self.session.flush()

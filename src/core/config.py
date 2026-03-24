@@ -22,12 +22,21 @@ class Settings(BaseSettings):
     VLLM_API_KEY: str | None = None
 
     # Приоритет провайдеров (порядок использования)
-    # Формат в .env: LLM_PROVIDER_PRIORITY=vllm,ollama (строка через запятую)
+    # Формат в .env: LLM_PROVIDER_PRIORITY_RAW=vllm,ollama (строка через запятую)
+    # Используем _RAW + property для обратной совместимости — .env проще редактировать как строку
+    # Pydantic v2 не парсит JSON из env по умолчанию для list[str]
     LLM_PROVIDER_PRIORITY_RAW: str = "vllm,ollama"
     
     @property
     def LLM_PROVIDER_PRIORITY(self) -> list[str]:
-        """Получение списка приоритетов провайдеров."""
+        """
+        Получение списка приоритетов провайдеров.
+        
+        :return: Список провайдеров ['vllm', 'ollama']
+        
+        Примечание: Значение парсится из строки в .env файле.
+        Это компромисс между явностью типа и удобством редактирования .env.
+        """
         return [p.strip() for p in self.LLM_PROVIDER_PRIORITY_RAW.split(",")]
 
     APP_NAME: str = "LLM-gate"

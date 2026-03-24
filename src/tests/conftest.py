@@ -14,6 +14,7 @@ import os
 
 import pytest
 from httpx import ASGITransport, AsyncClient, Response
+import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 # URL тестовой базы данных — PostgreSQL по умолчанию
@@ -76,27 +77,31 @@ def mock_auth_service():
 
 @pytest.fixture(scope="function")
 async def test_engine():
-    """Создание тестового движка БД."""
+    """Создание тестового движка БД.
+    
+    Таблицы уже созданы через миграции.
+    Перед каждым тестом данные очищаются.
+    """
     engine = create_async_engine(
         TEST_DATABASE_URL,
         echo=False,
+        pool_pre_ping=True,
     )
-
+    
+    # Очищаем все таблицы перед тестом
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    yield engine
-
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-
-    await engine.dispose()
+        await conn.execute(sa.text("TRUNCATE TABLE chat_messages, chat_sessions, chat_settings, llm_models, api_token RESTART IDENTITY CASCADE;"))
+    
+    return engine
 
 
 @pytest.fixture(scope="function")
 async def test_db(test_engine) -> AsyncGenerator[AsyncSession, None]:
-    """Создание тестовой сессии БД."""
-    async_session = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
+    """Создание тестовой сессии БД.
+    
+    Каждая сессия работает в транзакции которая откатывается после теста.
+    """
+    async_session = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False, autocommit=False)
 
     async with async_session() as session:
         try:
@@ -133,21 +138,6 @@ async def client(test_db: AsyncSession, mock_respx, test_token: APIToken) -> Asy
     async def override_get_llm_api_token():
         # Возвращаем domain модель (создана выше)
         return domain_token
-
-    # Переопределяем UnitOfWork чтобы использовал тестовую сессию
-    from src.infrastructure.database.unitOfWork import SqlAlchemyUnitOfWork
-    original_uow_init = SqlAlchemyUnitOfWork.__init__
-    original_uow_enter = SqlAlchemyUnitOfWork.__aenter__
-    
-    def override_uow_init(self, session=None):
-        original_uow_init(self, session=test_db)
-    
-    async def override_uow_enter(self):
-        self.session = test_db
-        return self
-    
-    SqlAlchemyUnitOfWork.__init__ = override_uow_init
-    SqlAlchemyUnitOfWork.__aenter__ = override_uow_enter
 
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_async_session] = override_get_async_session
@@ -262,11 +252,13 @@ async def test_message(test_db: AsyncSession, test_session: ChatSession) -> Chat
 @pytest.fixture
 async def test_model(test_db: AsyncSession) -> LLMModel:
     """Создание тестовой модели."""
+    from src.core.constants import ProviderType
+    
     model = LLMModel(
         name="Test Model",
         provider_model="test-model:7b",
         types=["text"],
-        provider="ollama",
+        provider=ProviderType.OLLAMA,
         active=True,
         temperature=0.7,
     )

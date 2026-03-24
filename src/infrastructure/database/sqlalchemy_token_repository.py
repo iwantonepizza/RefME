@@ -43,6 +43,10 @@ class SqlAlchemyTokenRepository(TokenRepository):
         model = result.scalar_one_or_none()
         return self._to_domain(model) if model else None
 
+    async def get(self, token_id: int) -> Token | None:
+        """Получение токена по ID (алиас для get_by_id)."""
+        return await self.get_by_id(token_id)
+
     async def get_by_token_value(self, token_value: str) -> Token | None:
         """
         Получение токена по значению.
@@ -63,10 +67,6 @@ class SqlAlchemyTokenRepository(TokenRepository):
             return None
         return token
 
-    async def get_by_token(self, token_value: str) -> Token | None:
-        """Получение токена по значению (алиас для get_by_token_value)."""
-        return await self.get_by_token_value(token_value)
-
     async def get_all(self, limit: int | None = None, offset: int | None = None, order_by: str | None = None) -> List[Token]:
         """Получение всех токенов."""
         query = select(APITokenModel)
@@ -82,9 +82,9 @@ class SqlAlchemyTokenRepository(TokenRepository):
 
     async def list(self, limit: int = 100, offset: int = 0,
                    filters: TokenFilters | None = None) -> List[Token]:
-        """Получение всех токенов с фильтрами (алиас для get_all)."""
+        """Получение всех токенов с фильтрами."""
         return await self.get_all(limit=limit, offset=offset)
-    
+
     async def create(self, token: Token) -> Token:
         """Создание токена."""
         model = APITokenModel(
