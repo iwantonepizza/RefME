@@ -12,8 +12,8 @@ from src.core.config import settings
 from src.core.logging import logger
 from src.core.rate_limiter import limiter
 from src.database.api_token import APIToken
-from src.domain.token.models import Token as DomainToken
 from src.infrastructure.utils.api_tokens import get_llm_api_token_from_headers
+from src.infrastructure.services.token_converter import TokenConverter
 from src.use_cases.dependencies import (
     get_llm_ask_use_case,
     get_llm_stream_use_case,
@@ -46,20 +46,8 @@ async def llm_endpoint(
 
     Поддерживает отправку изображений для мультимодальных моделей.
     """
-    # Конвертируем ORM/domain модель в domain модель для use case
-    if isinstance(api_llm_token, DomainToken):
-        # Уже domain модель (например, из тестов)
-        domain_token = api_llm_token
-    else:
-        # ORM модель - конвертируем
-        domain_token = DomainToken(
-            token_id=api_llm_token.id,
-            token_value=api_llm_token.token_value,
-            active=api_llm_token.active,
-            created_at=api_llm_token.created_at,
-            expires_at=api_llm_token.expires_at,
-            last_used_at=api_llm_token.last_used_at,
-        )
+    # Конвертируем ORM модель в domain модель
+    domain_token = TokenConverter.to_domain(api_llm_token)
 
     input_data = LLMAskInput(
         api_token=domain_token,
@@ -90,18 +78,8 @@ async def llm_stream_endpoint(
     Поддерживает мультимодальные запросы с изображениями.
     Возвращает stream как text/event-stream.
     """
-    # Конвертируем ORM/domain модель в domain модель для use case
-    if isinstance(api_llm_token, DomainToken):
-        domain_token = api_llm_token
-    else:
-        domain_token = DomainToken(
-            token_id=api_llm_token.id,
-            token_value=api_llm_token.token_value,
-            active=api_llm_token.active,
-            created_at=api_llm_token.created_at,
-            expires_at=api_llm_token.expires_at,
-            last_used_at=api_llm_token.last_used_at,
-        )
+    # Конвертируем ORM модель в domain модель
+    domain_token = TokenConverter.to_domain(api_llm_token)
 
     input_data = LLMStreamInput(
         api_token=domain_token,
@@ -134,18 +112,8 @@ async def llm_single_no_history(
     Отправляет запрос в нативный Ollama /api/chat.
     Поддерживает мультимодальные запросы.
     """
-    # Конвертируем ORM/domain модель в domain модель для use case
-    if isinstance(api_llm_token, DomainToken):
-        domain_token = api_llm_token
-    else:
-        domain_token = DomainToken(
-            token_id=api_llm_token.id,
-            token_value=api_llm_token.token_value,
-            active=api_llm_token.active,
-            created_at=api_llm_token.created_at,
-            expires_at=api_llm_token.expires_at,
-            last_used_at=api_llm_token.last_used_at,
-        )
+    # Конвертируем ORM модель в domain модель
+    domain_token = TokenConverter.to_domain(api_llm_token)
 
     input_data = LLMSingleUseCaseInput(
         api_token=domain_token,

@@ -89,3 +89,13 @@ class ChatRepository(ABC):
     async def count_sessions(self, chat_id: UUID) -> int:
         """Подсчёт количества сессий у чата."""
         pass
+
+    @abstractmethod
+    async def count_by_model_id(self, model_id: int) -> int:
+        """
+        Подсчёт количества чатов для модели.
+
+        :param model_id: ID модели
+        :return: Количество чатов
+        """
+        pass

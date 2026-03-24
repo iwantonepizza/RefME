@@ -22,6 +22,7 @@ class MetricsMiddleware(BaseHTTPMiddleware):
         HTTP_IN_PROGRESS.inc()
         start = time.perf_counter()
 
+        status_code = 500  # По умолчанию
         try:
             response = await call_next(request)
             status_code = response.status_code
@@ -29,7 +30,6 @@ class MetricsMiddleware(BaseHTTPMiddleware):
 
         except Exception as e:
             # Для необработанных исключений используем status_code 500
-            status_code = 500
             logger.error(f"Middleware error: {e}", exc_info=True)
             raise
 

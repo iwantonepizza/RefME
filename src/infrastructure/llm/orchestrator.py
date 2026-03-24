@@ -1,10 +1,8 @@
 """
 Реализация LLM Orchestrator.
 
-Orchestrator инкапсулирует логику работы с LLM providers:
-- Выбор провайдера для модели
-- Вызов provider (chat/stream)
-- Обработку ответов
+Orchestrator инкапсулирует логику вызова LLM провайдеров.
+Провайдер выбирается ВНЕ orchestrator (в use case) и передаётся готовым.
 """
 
 import logging
@@ -12,8 +10,7 @@ from typing import AsyncGenerator, List
 
 from src.domain.llm.message import LLMMessage
 from src.domain.llm.orchestrator import LLMOrchestrator
-from src.domain.llm_model.repositories import ModelRepository
-from src.infrastructure.llm.providers.factory import LLMProviderFactory
+from src.infrastructure.llm.providers.base import LLMProvider
 
 logger = logging.getLogger(__name__)
 
@@ -21,16 +18,17 @@ logger = logging.getLogger(__name__)
 class LLMOrchestratorImpl(LLMOrchestrator):
     """Реализация LLM Orchestrator."""
 
-    def __init__(
-        self,
-        model_repository: ModelRepository,
-        llm_factory: LLMProviderFactory,
-    ):
-        self.model_repository = model_repository
-        self.llm_factory = llm_factory
+    def __init__(self):
+        """
+        Инициализация orchestrator.
+        
+        Провайдеры передаются через методы generate/stream.
+        """
+        pass
 
     async def generate(
         self,
+        provider: LLMProvider,
         model: str,
         messages: List[LLMMessage],
         temperature: float,
@@ -39,16 +37,18 @@ class LLMOrchestratorImpl(LLMOrchestrator):
     ) -> str:
         """
         Генерация ответа от LLM (без стриминга).
+        
+        :param provider: Готовый провайдер (выбран в use case)
+        :param model: Название модели
+        :param messages: Список сообщений
+        :param temperature: Температура генерации
+        :param max_tokens: Максимум токенов
+        :param context_window: Размер контекста
+        :return: Текст ответа
         """
-        logger.info(f"LLM запрос: model={model}, messages_count={len(messages)}")
+        logger.info(f"LLM запрос: provider={provider.name}, model={model}")
 
-        # Получаем провайдер для модели через factory
-        provider = await self.llm_factory.get_provider_for_model(
-            model,
-            self.model_repository
-        )
-
-        # Выполняем запрос
+        # Выполняем запрос через провайдер
         response = await provider.chat_completion(
             model=model,
             messages=messages,
@@ -62,6 +62,7 @@ class LLMOrchestratorImpl(LLMOrchestrator):
 
     async def stream(
         self,
+        provider: LLMProvider,
         model: str,
         messages: List[LLMMessage],
         temperature: float,
@@ -70,16 +71,18 @@ class LLMOrchestratorImpl(LLMOrchestrator):
     ) -> AsyncGenerator[str, None]:
         """
         Стриминг ответа от LLM.
+        
+        :param provider: Готовый провайдер (выбран в use case)
+        :param model: Название модели
+        :param messages: Список сообщений
+        :param temperature: Температура генерации
+        :param max_tokens: Максимум токенов
+        :param context_window: Размер контекста
+        :yield: Чанки текста ответа
         """
-        logger.info(f"LLM стрим: model={model}, messages_count={len(messages)}")
+        logger.info(f"LLM стрим: provider={provider.name}, model={model}")
 
-        # Получаем провайдер для модели через factory
-        provider = await self.llm_factory.get_provider_for_model(
-            model,
-            self.model_repository
-        )
-
-        # Стримим ответ
+        # Стримим ответ через провайдер
         async for chunk in provider.stream_chat_completion(
             model=model,
             messages=messages,

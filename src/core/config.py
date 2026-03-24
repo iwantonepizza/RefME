@@ -22,7 +22,13 @@ class Settings(BaseSettings):
     VLLM_API_KEY: str | None = None
 
     # Приоритет провайдеров (порядок использования)
-    LLM_PROVIDER_PRIORITY: str | list[str] = "vllm,ollama"  # "vllm,ollama" или ["vllm", "ollama"]
+    # Формат в .env: LLM_PROVIDER_PRIORITY=vllm,ollama (строка через запятую)
+    LLM_PROVIDER_PRIORITY_RAW: str = "vllm,ollama"
+    
+    @property
+    def LLM_PROVIDER_PRIORITY(self) -> list[str]:
+        """Получение списка приоритетов провайдеров."""
+        return [p.strip() for p in self.LLM_PROVIDER_PRIORITY_RAW.split(",")]
 
     APP_NAME: str = "LLM-gate"
     DEBUG: bool = False
@@ -58,31 +64,6 @@ class Settings(BaseSettings):
         if v and not v.startswith(("http://", "https://")):
             raise ValueError("URL должен начинаться с http:// или https://")
         return v
-
-    @field_validator("LLM_PROVIDER_PRIORITY")
-    @classmethod
-    def validate_provider_priority(cls, v: str | list[str]) -> list[str]:
-        """Проверка формата приоритета провайдеров."""
-        allowed = {"vllm", "ollama"}
-        
-        # Конвертируем строку в список если нужно
-        if isinstance(v, str):
-            providers = [p.strip() for p in v.split(",")]
-        else:
-            providers = v
-        
-        for provider in providers:
-            if provider not in allowed:
-                raise ValueError(f"Недопустимый провайдер '{provider}'. Разрешены: {', '.join(allowed)}")
-        
-        return providers
-
-    @property
-    def provider_priority_list(self) -> list[str]:
-        """Получение списка приоритетов провайдеров."""
-        if isinstance(self.LLM_PROVIDER_PRIORITY, str):
-            return [p.strip() for p in self.LLM_PROVIDER_PRIORITY.split(",")]
-        return self.LLM_PROVIDER_PRIORITY
 
     @field_validator("LLM_RATE_LIMIT", "ADMIN_RATE_LIMIT", "DEFAULT_RATE_LIMIT")
     @classmethod

@@ -155,3 +155,10 @@ class SqlAlchemyChatRepository(ChatRepository):
             select(func.count()).select_from(ChatSession).where(ChatSession.chat_id == chat_id)
         )
         return result.scalar() or 0
+
+    async def count_by_model_id(self, model_id: int) -> int:
+        """Подсчёт количества чатов для модели."""
+        result = await self.session.execute(
+            select(func.count()).select_from(ChatSettingsModel).where(ChatSettingsModel.model_id == model_id)
+        )
+        return result.scalar() or 0

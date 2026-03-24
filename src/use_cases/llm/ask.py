@@ -14,6 +14,7 @@ from src.core.constants import MessageStatus, Role
 from src.core.logging import logger
 from src.domain.chat.repositories import ChatRepository
 from src.domain.llm.orchestrator import LLMOrchestrator
+from src.domain.llm_model.repositories import ModelRepository
 from src.domain.message.models import Message
 from src.domain.message.repositories import MessageRepository
 from src.domain.session.repositories import SessionRepository
@@ -26,24 +27,14 @@ from src.exceptions.domain_exceptions import (
     SessionNotBoundToChatError,
     SessionNotFoundError,
     TokenNotFoundError,
-    TooManyImagesError,
 )
 from src.infrastructure.utils.effective_settings import get_effective_settings
-from src.infrastructure.utils.image_helpers import encode_images_to_base64
 from src.use_cases.base_use_case import BaseUseCase
 from src.use_cases.llm.dto import EffectiveSettings, LLMRequestInput, LLMRequestOutput
 from src.domain.llm.message import LLMMessage
 
-# Импорты для метрик
-try:
-    from src.prometheus.metrics import (
-        llm_request_latency,
-        llm_requests_total,
-        llm_tokens_used
-    )
-    METRICS_AVAILABLE = True
-except ImportError:
-    METRICS_AVAILABLE = False
+# Флаг доступности метрик
+METRICS_AVAILABLE = True
 
 
 @dataclass
@@ -73,13 +64,15 @@ class LLMAskUseCase(BaseUseCase[LLMAskInput, LLMAskOutput]):
         session_repository: SessionRepository,
         chat_repository: ChatRepository,
         message_repository: MessageRepository,
+        model_repository: ModelRepository,
         orchestrator: LLMOrchestrator,
-        token_counter: TokenCounter,  # ✅ Token Counter
+        token_counter: TokenCounter,
     ):
         self.token_repository = token_repository
         self.session_repository = session_repository
         self.chat_repository = chat_repository
         self.message_repository = message_repository
+        self.model_repository = model_repository
         self.orchestrator = orchestrator
         self.token_counter = token_counter
 
@@ -140,17 +133,11 @@ class LLMAskUseCase(BaseUseCase[LLMAskInput, LLMAskOutput]):
             f"context_window={effective_settings.context_window}"
         )
 
-        # Обработка изображений
-        images_data: List[str | None] = None
-        if input_data.images and len(input_data.images) > 0:
-            from src.core.config import settings
-            max_images = settings.MAX_IMAGES_PER_REQUEST
-            if len(input_data.images) > max_images:
-                raise TooManyImagesError(max_images)
-
-            images_data = encode_images_to_base64(input_data.images)
-            if not images_data:
-                images_data = None
+        # Обработка изображений через сервис
+        images_data: List[str] | None = None
+        if input_data.images:
+            from src.infrastructure.services.image_service import ImageService
+            images_data = await ImageService.process_images(input_data.images)
 
         # Формируем messages payload
         messages_payload = await self._build_messages_payload(
@@ -173,7 +160,16 @@ class LLMAskUseCase(BaseUseCase[LLMAskInput, LLMAskOutput]):
             ))
 
         # Выполняем запрос к LLM через orchestrator
+        # Сначала выбираем провайдера для модели
+        from src.infrastructure.llm.providers.factory import get_provider_factory
+        llm_factory = get_provider_factory()
+        provider = await llm_factory.get_provider_for_model(
+            effective_settings.model,
+            self.model_repository
+        )
+        
         response_text = await self.orchestrator.generate(
+            provider=provider,
             model=effective_settings.model,
             messages=messages_payload,
             temperature=effective_settings.temperature,
@@ -192,32 +188,17 @@ class LLMAskUseCase(BaseUseCase[LLMAskInput, LLMAskOutput]):
                 status=MessageStatus.COMPLETED.value,
             ))
 
-        # Записываем метрики с точным подсчётом токенов
+        # Записываем метрики через сервис
         if METRICS_AVAILABLE:
-            llm_request_latency.labels(
-                model=effective_settings.model,
-                status="success"
-            ).observe(latency)
-            llm_requests_total.labels(
-                model=effective_settings.model,
-                status="success"
-            ).inc()
-            # Точный подсчёт токенов через token_counter
+            from src.infrastructure.services.llm_metrics_service import LLMMetricsService
+            metrics_service = LLMMetricsService(self.token_counter)
             messages_dict = [msg.to_dict() for msg in messages_payload]
-            prompt_tokens = self.token_counter.count_prompt_tokens(
-                messages_dict, effective_settings.model
-            )
-            completion_tokens = self.token_counter.count_completion_tokens(
-                response_text, effective_settings.model
-            )
-            llm_tokens_used.labels(
+            metrics_service.record_request(
                 model=effective_settings.model,
-                type="prompt"
-            ).inc(prompt_tokens)
-            llm_tokens_used.labels(
-                model=effective_settings.model,
-                type="completion"
-            ).inc(completion_tokens)
+                latency=latency,
+                messages=messages_dict,
+                response_text=response_text,
+            )
 
         return LLMAskOutput(
             response=response_text,

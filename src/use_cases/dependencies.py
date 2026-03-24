@@ -290,14 +290,9 @@ async def get_token_counter() -> TokenCounter:
     return get_token_counter()
 
 
-async def get_llm_orchestrator(
-    model_repository: ModelRepository = Depends(get_model_repository),
-) -> LLMOrchestratorImpl:
+async def get_llm_orchestrator() -> LLMOrchestratorImpl:
     """Зависимость для LLMOrchestrator."""
-    return LLMOrchestratorImpl(
-        model_repository=model_repository,
-        llm_factory=get_provider_factory(),
-    )
+    return LLMOrchestratorImpl()
 
 
 async def get_llm_ask_use_case(
@@ -305,6 +300,7 @@ async def get_llm_ask_use_case(
     session_repository: SqlAlchemySessionRepository = Depends(get_session_repository),
     chat_repository: SqlAlchemyChatRepository = Depends(get_chat_repository),
     message_repository: SqlAlchemyMessageRepository = Depends(get_message_repository),
+    model_repository: SqlAlchemyModelRepository = Depends(get_model_repository),
     orchestrator: LLMOrchestratorImpl = Depends(get_llm_orchestrator),
     token_counter: TokenCounter = Depends(get_token_counter),
 ) -> LLMAskUseCase:
@@ -314,6 +310,7 @@ async def get_llm_ask_use_case(
         session_repository=session_repository,
         chat_repository=chat_repository,
         message_repository=message_repository,
+        model_repository=model_repository,
         orchestrator=orchestrator,
         token_counter=token_counter,
     )
@@ -324,6 +321,7 @@ async def get_llm_stream_use_case(
     session_repository: SqlAlchemySessionRepository = Depends(get_session_repository),
     chat_repository: SqlAlchemyChatRepository = Depends(get_chat_repository),
     message_repository: SqlAlchemyMessageRepository = Depends(get_message_repository),
+    model_repository: SqlAlchemyModelRepository = Depends(get_model_repository),
     orchestrator: LLMOrchestratorImpl = Depends(get_llm_orchestrator),
     token_counter: TokenCounter = Depends(get_token_counter),
 ) -> LLMStreamUseCase:
@@ -333,6 +331,7 @@ async def get_llm_stream_use_case(
         session_repository=session_repository,
         chat_repository=chat_repository,
         message_repository=message_repository,
+        model_repository=model_repository,
         orchestrator=orchestrator,
         token_counter=token_counter,
     )
@@ -341,7 +340,7 @@ async def get_llm_stream_use_case(
 async def get_llm_single_use_case(
     token_repository: SqlAlchemyTokenRepository = Depends(get_token_repository),
     chat_repository: SqlAlchemyChatRepository = Depends(get_chat_repository),
-    model_repository: ModelRepository = Depends(get_model_repository),
+    model_repository: SqlAlchemyModelRepository = Depends(get_model_repository),
     token_counter: TokenCounter = Depends(get_token_counter),
 ) -> LLMSingleUseCase:
     """Зависимость для LLMSingleUseCase."""
@@ -351,4 +350,3 @@ async def get_llm_single_use_case(
         model_repository=model_repository,
         token_counter=token_counter,
     )
-

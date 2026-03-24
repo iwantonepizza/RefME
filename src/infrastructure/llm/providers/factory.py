@@ -125,7 +125,7 @@ class LLMProviderFactory:
 
     async def _get_provider_by_priority(self, model_name: str) -> str | None:
         """Получение провайдера по приоритету из конфига."""
-        for provider_name in settings.provider_priority_list:
+        for provider_name in settings.LLM_PROVIDER_PRIORITY:
             if provider_name in self._providers:
                 provider = self._providers[provider_name]
                 if await provider.health_check():

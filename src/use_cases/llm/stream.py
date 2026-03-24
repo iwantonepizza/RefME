@@ -34,6 +34,7 @@ from src.infrastructure.utils.image_helpers import encode_images_to_base64
 from src.use_cases.base_use_case import BaseUseCase
 from src.use_cases.llm.dto import EffectiveSettings
 from src.domain.llm.message import LLMMessage
+from src.domain.llm_model.repositories import ModelRepository
 
 
 @dataclass
@@ -55,13 +56,15 @@ class LLMStreamUseCase(BaseUseCase[LLMStreamInput, AsyncGenerator[str, None]]):
         session_repository: SessionRepository,
         chat_repository: ChatRepository,
         message_repository: MessageRepository,
+        model_repository: ModelRepository,
         orchestrator: LLMOrchestrator,
-        token_counter: TokenCounter,  # ✅ Token Counter
+        token_counter: TokenCounter,
     ):
         self.token_repository = token_repository
         self.session_repository = session_repository
         self.chat_repository = chat_repository
         self.message_repository = message_repository
+        self.model_repository = model_repository
         self.orchestrator = orchestrator
         self.token_counter = token_counter
 
@@ -136,7 +139,16 @@ class LLMStreamUseCase(BaseUseCase[LLMStreamInput, AsyncGenerator[str, None]]):
                     status=MessageStatus.COMPLETED.value
                 ))
 
+            # Выбираем провайдера для модели
+            from src.infrastructure.llm.providers.factory import get_provider_factory
+            llm_factory = get_provider_factory()
+            provider = await llm_factory.get_provider_for_model(
+                effective_settings.model,
+                self.model_repository
+            )
+
             async for chunk in self.orchestrator.stream(
+                provider=provider,
                 model=effective_settings.model,
                 messages=messages_payload,
                 temperature=effective_settings.temperature,

@@ -29,11 +29,13 @@ class ChatSettingsDB(Base):
     model_id: Mapped[int | None] = mapped_column(
         ForeignKey("llm_models.id"),
         nullable=True,
-        comment="ID модели из справочника"
+        comment="ID модели из справочника (основной источник истины)"
     )
     model_name: Mapped[str | None] = mapped_column(
         nullable=True,
-        comment="Название модели (денормализация)"
+        comment="Денормализация: provider_model из llm_models. "
+                "Копируется при создании чата для производительности. "
+                "Сохраняется при удалении модели для истории."
     )
 
     name: Mapped[str | None] = mapped_column(nullable=True, comment="Название чата")

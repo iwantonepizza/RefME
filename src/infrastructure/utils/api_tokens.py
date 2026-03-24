@@ -29,7 +29,7 @@ async def get_llm_api_token_from_headers(
         raise MissingTokenError()
 
     token_repository = SqlAlchemyTokenRepository(session)
-    api_token = await token_repository.get_active_by_token_value(api_llm_token)
+    api_token = await token_repository.get_by_token_value(api_llm_token)
 
     if not api_token:
         raise InvalidTokenError()

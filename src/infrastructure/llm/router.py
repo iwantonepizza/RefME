@@ -29,7 +29,7 @@ class LLMModelRouter(ModelRouter):
 
     def __init__(self, llm_factory: LLMProviderFactory):
         self.llm_factory = llm_factory
-        self._provider_priority = settings.provider_priority_list
+        self._provider_priority = settings.LLM_PROVIDER_PRIORITY
         self._model_provider_cache: dict[str, str] = {}
 
     async def get_provider(self, model_name: str) -> str | None:

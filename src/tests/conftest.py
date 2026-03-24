@@ -1,28 +1,27 @@
 """
 Конфигурация тестов и фикстуры.
+
+Тесты используют PostgreSQL для полной совместимости с production.
+Для запуска тестов необходим PostgreSQL:
+  docker-compose -f docker/docker-compose.yml up -d db
 """
 
 import asyncio
+from datetime import datetime, timezone
 from typing import AsyncGenerator, Generator
 import uuid
+import os
 
 import pytest
 from httpx import ASGITransport, AsyncClient, Response
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.pool import StaticPool
 
-# Импортируем и настраиваем UUID компилятор для SQLite ДО импорта Base
-from sqlalchemy.dialects import sqlite
-from sqlalchemy import TypeDecorator
-from sqlalchemy.dialects.sqlite import CHAR
-
-class UUIDCompiler:
-    """Компилятор UUID типа для SQLite."""
-    def process(self, element, **kw):
-        return "CHAR(36)"
-
-# Регистрируем компилятор
-sqlite.base.SQLiteTypeCompiler.visit_UUID = lambda self, *args, **kwargs: "CHAR(36)"
+# URL тестовой базы данных — PostgreSQL по умолчанию
+# Для SQLite тестов установите TEST_DATABASE_URL=sqlite+aiosqlite:///:memory:
+TEST_DATABASE_URL = os.getenv(
+    "TEST_DATABASE_URL",
+    "postgresql+asyncpg://llm_user:super_pass@localhost:5432/llm_gateway_test"
+)
 
 from src.core.config import settings
 from src.database.base_model import Base
@@ -36,15 +35,9 @@ from src.main import app
 from src.use_cases.dependencies import get_db
 from src.tests.auth_helper import get_auth_headers, AuthTokenError
 
-# URL тестовой базы данных (SQLite in-memory)
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
-
 # Мок для сервиса авторизации
 MOCK_AUTH_SERVICE_URL = "http://test-auth-service/validate"
 MOCK_USER_ID = 12345
-
-# Флаг для переключения между реальной и мок-авторизацией
-USE_REAL_AUTH = False  # Отключаем реальную авторизацию для тестов
 
 
 @pytest.fixture(scope="session")
@@ -86,8 +79,7 @@ async def test_engine():
     """Создание тестового движка БД."""
     engine = create_async_engine(
         TEST_DATABASE_URL,
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
+        echo=False,
     )
 
     async with engine.begin() as conn:

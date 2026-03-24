@@ -20,7 +20,8 @@ from src.exceptions.domain_exceptions import (
     DomainException,
     NotFoundError,
     AlreadyExistsError,
-    IncorrectValueError,
+    InvalidInputError,
+    InvalidInputWithFieldError,
     TokenInvalidError,
     TokenInactiveError,
     TooManyImagesError,
@@ -101,11 +102,11 @@ def register_exception_handlers(app: FastAPI) -> None:
             },
         )
 
-    @app.exception_handler(IncorrectValueError)
-    async def incorrect_value_handler(request: Request, exc: IncorrectValueError) -> JSONResponse:
+    @app.exception_handler(InvalidInputWithFieldError)
+    async def incorrect_value_handler(request: Request, exc: InvalidInputWithFieldError) -> JSONResponse:
         """Обработчик ошибок 'неверное значение'."""
         logger.warning(
-            f"Incorrect value: {exc.message}",
+            f"Incorrect value: {exc.message} (field={exc.field})",
             extra={
                 "method": request.method,
                 "error_code": exc.error_code,
@@ -117,6 +118,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             content={
                 "error_code": exc.error_code,
                 "message": exc.message,
+                "field": exc.field,
             },
         )
 
