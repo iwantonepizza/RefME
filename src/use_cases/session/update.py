@@ -48,7 +48,7 @@ class UpdateSessionUseCase(BaseUseCase[UpdateSessionInput, UpdateSessionOutput])
         logger.info(f"Обновление сессии ID={input_data.session_id}, привязка к чату ID={input_data.chat_id}")
 
         # Получаем сессию
-        session = await self.repository.get(input_data.session_id)
+        session = await self.repository.get_by_id(input_data.session_id)
 
         if not session:
             raise SessionNotFoundError(session_id=input_data.session_id)

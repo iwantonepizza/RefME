@@ -77,7 +77,7 @@ class UpdateTokenUseCase(BaseUseCase[UpdateTokenInput, UpdateTokenOutput]):
         """Обновление токена."""
         logger.info(f"Обновление токена ID={input_data.token_id}")
 
-        token = await self.repository.get(input_data.token_id)
+        token = await self.repository.get_by_id(input_data.token_id)
 
         if not token:
             raise TokenNotFoundError(token_id=input_data.token_id)

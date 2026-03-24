@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from src.core.constants import Role
+from src.core.constants import MessageStatus, Role
 
 
 @dataclass
@@ -14,7 +14,7 @@ class Message:
     """Бизнес-объект сообщения."""
     role: Role
     content: str
-    status: str
+    status: MessageStatus
     message_id: UUID = field(default_factory=uuid4)
     session_id: UUID = field(default_factory=uuid4)
     started_at: datetime | None = None

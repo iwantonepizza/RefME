@@ -36,9 +36,13 @@ class SqlAlchemyMessageRepository(MessageRepository):
             deleted_at=model.deleted_at,
         )
 
-    async def get(self, message_id: UUID) -> Message | None:
+    async def get_by_id(self, message_id: UUID) -> Message | None:
         """Получение сообщения по ID."""
-        return await self.get_by_id(message_id)
+        result = await self.session.execute(
+            select(ChatMessage).where(ChatMessage.id == message_id)
+        )
+        model = result.scalar_one_or_none()
+        return self._to_domain(model) if model else None
 
     async def list(self, session_id: UUID, limit: int = 100, offset: int = 0,
                    filters: MessageFilters | None = None) -> List[Message]:

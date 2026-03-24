@@ -66,7 +66,7 @@ class GetSessionUseCase(BaseUseCase[GetSessionInput, GetSessionOutput]):
                 input_data.session_id
             )
         elif input_data.session_id:
-            session = await self.repository.get(input_data.session_id)
+            session = await self.repository.get_by_id(input_data.session_id)
         else:
             raise InvalidInputError("session_id is required")
 

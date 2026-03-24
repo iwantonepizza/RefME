@@ -43,10 +43,6 @@ class SqlAlchemyTokenRepository(TokenRepository):
         model = result.scalar_one_or_none()
         return self._to_domain(model) if model else None
 
-    async def get(self, token_id: int) -> Token | None:
-        """Получение токена по ID (алиас для get_by_id)."""
-        return await self.get_by_id(token_id)
-
     async def get_by_token_value(self, token_value: str) -> Token | None:
         """
         Получение токена по значению.

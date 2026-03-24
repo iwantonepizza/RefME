@@ -53,10 +53,6 @@ class SqlAlchemyChatRepository(ChatRepository):
         model = result.scalar_one_or_none()
         return self._to_domain(model) if model else None
 
-    async def get(self, chat_id: UUID) -> Chat | None:
-        """Получение чата по ID (алиас для get_by_id)."""
-        return await self.get_by_id(chat_id)
-
     async def get_by_token_id_and_chat_id(self, token_id: int, chat_id: UUID) -> Chat | None:
         """Получение чата по token_id и chat_id с загруженной моделью."""
         result = await self.session.execute(
@@ -83,11 +79,6 @@ class SqlAlchemyChatRepository(ChatRepository):
         )
         models = result.unique().scalars().all()
         return [self._to_domain(m) for m in models]
-
-    async def list(self, token_id: int, limit: int = 100, offset: int = 0,
-                   filters: ChatFilters | None = None) -> List[Chat]:
-        """Получение списка чатов с фильтрами (алиас для list_by_token_id)."""
-        return await self.list_by_token_id(token_id, limit, offset, filters)
 
     async def create(self, chat: Chat) -> Chat:
         """Создание чата."""

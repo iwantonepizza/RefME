@@ -78,10 +78,6 @@ class SqlAlchemySessionRepository(SessionRepositoryInterface):
         model = result.scalar_one_or_none()
         return self._to_domain(model) if model else None
 
-    async def get(self, session_id: UUID) -> SessionDomain | None:
-        """Получение сессии по ID (алиас для get_by_id)."""
-        return await self.get_by_id(session_id)
-
     async def create(self, session: SessionDomain) -> SessionDomain:
         """Создание сессии."""
         model = ChatSession(
