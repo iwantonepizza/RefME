@@ -4,6 +4,7 @@
 
 from dataclasses import dataclass
 from datetime import datetime
+from uuid import UUID
 
 
 @dataclass
@@ -13,7 +14,7 @@ class MessageFilters:
 
     Все поля опциональны — используются только те, что переданы.
     """
-    session_id: str | None = None  # Фильтр по ID сессии
+    session_id: UUID | None = None  # Фильтр по ID сессии
     role: str | None = None  # Фильтр по роли (user/assistant/system)
     status: str | None = None  # Фильтр по статусу
     created_after: datetime | None = None  # Созданы после даты

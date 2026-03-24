@@ -59,20 +59,20 @@ class ModelDTO(BaseModel):
     def from_orm(cls, model: "LLMModel", chats_count: int | None = None) -> "ModelDTO":
         """Создание DTO из SQLAlchemy или domain модели."""
         # Проверяем тип модели (domain или ORM)
-        model_id = getattr(model, 'id', None) or getattr(model, 'model_id', 0)
+        model_id = getattr(model, 'id', None) or getattr(model, 'model_id', 0) or 0
         model_type = getattr(model, 'type', None)
         model_types = getattr(model, 'types', [])
-        
+
         # Если type не найден, берём первый элемент из types list
         type_value = model_type.value if hasattr(model_type, 'value') else (model_types[0] if model_types else "text")
-        
+
         return cls(
             id=model_id,
-            name=model.name,
-            provider_model=model.provider_model,
-            provider=model.provider,
+            name=model.name or "",
+            provider_model=model.provider_model or "",
+            provider=model.provider or "",
             type=type_value,
-            active=model.active,
+            active=model.active if model.active is not None else True,
             max_tokens=model.max_tokens,
             context_window=model.context_window,
             temperature=model.temperature,
@@ -189,15 +189,15 @@ class MessageDTO(BaseModel):
         # Проверяем тип модели и получаем ID
         message_id = getattr(message, 'id', None) or getattr(message, 'message_id', None)
         session_id = getattr(message, 'session_id', None)
-        
+
         return cls(
-            id=message_id,
-            session_id=session_id,
-            role=message.role,
-            content=message.content,
-            status=message.status,
+            id=message_id or UUID(int=0),
+            session_id=session_id or UUID(int=0),
+            role=getattr(message, 'role', ''),
+            content=getattr(message, 'content', ''),
+            status=getattr(message, 'status', ''),
             process_at=getattr(message, 'started_at', None) or getattr(message, 'process_at', None),
-            created_at=message.created_at,
+            created_at=getattr(message, 'created_at', None),
         )
 
 
@@ -235,10 +235,10 @@ class TokenDTO(BaseModel):
 
         return cls(
             id=token_id,
-            token_value=token_value,
-            active=token.active,
-            created_at=token.created_at,
-            last_used_at=token.last_used_at,
+            token_value=token_value or "",
+            active=getattr(token, 'active', True),
+            created_at=getattr(token, 'created_at', None),
+            last_used_at=getattr(token, 'last_used_at', None),
             chats_count=chats_count or 0,
             sessions_count=sessions_count or 0,
         )

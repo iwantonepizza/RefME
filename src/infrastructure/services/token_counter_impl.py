@@ -73,7 +73,7 @@ class TiktokenTokenCounter(TokenCounter):
             "total": prompt_tokens + completion_tokens,
         }
 
-    def _get_encoding(self, model: str) -> object:
+    def _get_encoding(self, model: str):
         """
         Получение encoding для модели.
 

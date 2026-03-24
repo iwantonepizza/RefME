@@ -90,6 +90,8 @@ class UpdateTokenUseCase(BaseUseCase[UpdateTokenInput, UpdateTokenOutput]):
 
         # Сохраняем через репозиторий
         updated_token = await self.repository.update(token)
+        if not updated_token:
+            raise TokenNotFoundError(token_id=input_data.token_id)
         logger.info(f"Токен ID={input_data.token_id} обновлён")
 
         return UpdateTokenOutput(

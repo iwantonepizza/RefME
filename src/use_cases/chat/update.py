@@ -54,6 +54,8 @@ class UpdateChatUseCase(BaseUseCase[UpdateChatInput, ChatResponseSchema]):
 
         # Сохраняем через репозиторий
         updated_chat = await self.repository.update(chat)
+        if not updated_chat:
+            raise ChatNotFoundError(chat_id=input_data.chat_id)
         logger.info(f"Чат ID={input_data.chat_id} обновлён")
 
         # Получаем счётчик сессий

@@ -58,6 +58,8 @@ class UpdateSessionUseCase(BaseUseCase[UpdateSessionInput, UpdateSessionOutput])
 
         # Сохраняем через репозиторий
         updated_session = await self.repository.update(session)
+        if not updated_session:
+            raise SessionNotFoundError(session_id=input_data.session_id)
 
         logger.info(f"Сессия ID={input_data.session_id} обновлена, привязана к чату ID={input_data.chat_id}")
 

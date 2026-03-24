@@ -77,11 +77,11 @@ class CreateModelOutput:
         description: str | None = None,
         chats_count: int = 0,
     ):
-        self.id = model_id  # Конвертируем model_id → id
+        self.model_id = model_id  # Конвертируем model_id → model_id
         self.name = name
         self.provider_model = provider_model
         self.provider = provider
-        self.type = types[0] if types else "text"  # Конвертируем types → type
+        self.types = types  # Конвертируем types → types
         self.active = active
         self.temperature = temperature
         self.max_tokens = max_tokens
@@ -139,11 +139,11 @@ class CreateModelUseCase(BaseUseCase[CreateModelInput, CreateModelOutput]):
         logger.info(f"Модель создана с ID: {created_model.model_id}")
 
         return CreateModelOutput(
-            id=created_model.model_id,
+            model_id=created_model.model_id,
             name=created_model.name,
             provider_model=created_model.provider_model,
             provider=created_model.provider,
-            type=created_model.types[0] if created_model.types else "text",
+            types=created_model.types,
             active=created_model.active,
             temperature=created_model.temperature,
             max_tokens=created_model.max_tokens,
